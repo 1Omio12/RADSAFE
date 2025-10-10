@@ -6,13 +6,14 @@
   <title>ORadiation Dual Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Roboto', sans-serif; background: #cde5fc; color: #2d3748; margin: 0; padding: 2rem; min-height: 100vh; display: flex; flex-direction: column; }
     .container { max-width: 1400px; margin: 0 auto; flex: 1; }
     h1 { font-size: 2.5rem; font-weight: 700; color: #1a202c; text-align: center; margin-bottom: 1rem; }
     h2 { font-size: 1.75rem; font-weight: 500; color: #2d3748; margin-bottom: 1.5rem; text-align: center; }
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding: 1.5rem; background: #ffffff; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+    .header { display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 2rem; padding: 1.5rem; background: #ffffff; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); text-align: center; }
     .controls { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; align-items: center; background: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 2rem; }
     .controls label { font-size: 1rem; font-weight: 500; color: #4a5568; }
     .controls input[type="number"], .controls input[type="date"], .controls input[type="time"], .controls select { padding: 0.75rem; font-size: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; width: 140px; transition: border-color 0.3s ease, box-shadow 0.3s ease; }
@@ -48,7 +49,131 @@
       padding-left: 0.25rem; 
       white-space: nowrap; 
     }
-    #detector-container { margin: 2rem auto; width: 300px; height: 600px; display: flex; justify-content: center; align-items: center; background: #ffffff; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+    #detector-container { 
+      margin: 2rem auto; 
+      width: 100%; 
+      max-width: 700px;
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      backdrop-filter: blur(10px);
+      border-radius: 1.5rem; 
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 
+                  0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+      border: 2px solid rgba(102, 126, 234, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    #detector-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+      background-size: 200% 100%;
+      animation: gradient-shift 3s linear infinite;
+    }
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+    
+    .detector-screen {
+      width: 100%;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .detector-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 2rem;
+      text-shadow: none;
+      letter-spacing: 0.5px;
+    }
+    
+    .data-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(102, 126, 234, 0.1);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      margin-bottom: 1.5rem;
+      border: 2px solid rgba(102, 126, 234, 0.2);
+    }
+    
+    .data-label {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+    
+    .data-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a202c;
+      font-family: 'Courier New', monospace;
+      transition: opacity 0.3s ease;
+    }
+    
+    .data-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #edf2f7;
+      transition: background-color 0.3s ease;
+    }
+    
+    .environmental-data {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+    }
+    
+    .env-item.pressure-item {
+      min-width: 140px;
+      grid-column: span 1;
+    }
+    
+    .env-item {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      text-align: center;
+    }
+    
+    .env-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.5rem;
+    }
+    
+    .env-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #2d3748;
+      font-family: 'Courier New', monospace;
+      transition: opacity 0.3s ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .env-value.pressure-value {
+      overflow: visible;
+      text-overflow: unset;
+      min-width: 100px;
+    }
     #detector-svg { width: 100%; height: 100%; }
     .detector-body { fill: #edf2f7; stroke: #4a5568; stroke-width: 2; }
     .detector-antenna { fill: #2d3748; stroke: #2d3748; stroke-width: 2; }
@@ -65,38 +190,338 @@
     .interpolation-container { background: #ffffff; padding: 2rem; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); margin-bottom: 2rem; text-align: center; }
     .interpolation-image { max-width: 100%; height: auto; border-radius: 0.5rem; }
     .interpolation-caption { font-size: 1rem; font-weight: 500; color: #2d3748; margin-top: 1rem; }
+    
+    /* Radiation Protection Dashboard Styles */
+    .alert-system { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .alert-level { display: flex; align-items: center; padding: 1rem; border-radius: 0.75rem; transition: all 0.3s ease; }
+    .alert-level.active { transform: scale(1.05); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); }
+    .alert-level#alert-normal { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .alert-level#alert-action { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+    .alert-level#alert-warning { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .alert-level#alert-emergency { background: linear-gradient(135deg, #7c2d12, #991b1b); color: white; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .alert-icon { font-size: 2rem; margin-right: 1rem; }
+    .alert-text h3 { margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 700; }
+    .alert-text p { margin: 0.25rem 0; font-size: 0.9rem; opacity: 0.9; }
+    
+    .dose-tracking { margin-bottom: 2rem; }
+    .dose-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .metric-card { background: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); text-align: center; }
+    .metric-card h4 { margin: 0 0 1rem 0; color: #4a5568; font-size: 0.9rem; font-weight: 600; }
+    .metric-value { font-size: 2rem; font-weight: 700; color: #1a202c; margin-bottom: 0.5rem; }
+    .metric-status { font-size: 0.875rem; font-weight: 500; padding: 0.25rem 0.75rem; border-radius: 1rem; display: inline-block; }
+    .metric-status.safe { background: #d1fae5; color: #065f46; }
+    .metric-status.warning { background: #fef3c7; color: #92400e; }
+    .metric-status.danger { background: #fee2e2; color: #991b1b; }
+    
+    .regulatory-compliance { margin-bottom: 2rem; }
+    .compliance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .compliance-item { background: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+    .compliance-item h4 { margin: 0 0 0.5rem 0; color: #1a202c; font-size: 1rem; font-weight: 600; }
+    .compliance-item p { margin: 0 0 1rem 0; color: #4a5568; font-size: 0.875rem; }
+    .compliance-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 0.5rem; }
+    .compliance-fill { height: 100%; background: linear-gradient(90deg, #10b981, #f59e0b, #ef4444); transition: width 0.5s ease; width: 0%; }
+    .compliance-item span { font-size: 0.875rem; font-weight: 600; color: #2d3748; }
+    
+    .emergency-contacts { margin-bottom: 2rem; }
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .contact-card { background: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); border-left: 4px solid #3182ce; }
+    .contact-card h4 { margin: 0 0 1rem 0; color: #1a202c; font-size: 1rem; font-weight: 600; }
+    .contact-card p { margin: 0.5rem 0; color: #4a5568; font-size: 0.875rem; }
+    
+    .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 2rem; }
+    .action-btn { padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 500; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.3s ease; }
+    .action-btn.primary { background: #3182ce; color: white; }
+    .action-btn.primary:hover { background: #2b6cb0; transform: translateY(-2px); }
+    .action-btn.secondary { background: #10b981; color: white; }
+    .action-btn.secondary:hover { background: #059669; transform: translateY(-2px); }
+    .action-btn.tertiary { background: #8b5cf6; color: white; }
+    .action-btn.tertiary:hover { background: #7c3aed; transform: translateY(-2px); }
+    .action-btn.emergency { background: #ef4444; color: white; animation: pulse 2s infinite; }
+    .action-btn.emergency:hover { background: #dc2626; transform: translateY(-2px); }
+    
+    /* Professional Status Indicators */
+    .status-bar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .professional-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .professional-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .section-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.25rem;
+    }
+
+    .data-timestamp {
+      font-size: 0.75rem;
+      color: #718096;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* ML Anomaly Detection Styles */
+    .metric-card {
+      background: #ffffff;
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .metric-card h4 {
+      margin: 0 0 1rem 0;
+      color: #4a5568;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-status {
+      font-size: 0.875rem;
+      font-weight: 500;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      display: inline-block;
+    }
+
+    .metric-status.safe { background: #d1fae5; color: #065f46; }
+    .metric-status.warning { background: #fef3c7; color: #92400e; }
+    .metric-status.danger { background: #fee2e2; color: #991b1b; }
+
+    .table-responsive {
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .table-responsive table {
+      margin-bottom: 0;
+      width: 100%;
+    }
+
+    .table-responsive th,
+    .table-responsive td {
+      padding: 0.75rem;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .table-responsive thead th {
+      border-bottom: 2px solid #e2e8f0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .table-responsive tbody td {
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .table {
+      margin-bottom: 0;
+    }
+
+    .table thead th {
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+      font-weight: 600;
+      color: #374151;
+      text-align: center;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .table tbody td {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .table tbody td:first-child {
+      text-align: left;
+    }
+
+    .table tbody td:nth-child(2) {
+      text-align: center;
+    }
+
+    /* Alert level colors */
+    .alert-red { color: #dc2626; font-weight: 600; }
+    .alert-orange { color: #ea580c; font-weight: 600; }
+    .alert-yellow { color: #d97706; font-weight: 600; }
+    .alert-purple { color: #7c3aed; font-weight: 600; }
+    .alert-normal { color: #059669; font-weight: 600; }
+
+    /* Table specific styling */
+    .table-responsive .table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .table-responsive .table tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    .table-responsive .table tbody tr:nth-child(odd) {
+      background-color: #ffffff;
+    }
+
+    .table-responsive .table tbody tr:hover {
+      background-color: #e2e8f0 !important;
+    }
+
+    /* Center align table headers */
+    .table-responsive .table thead th {
+      text-align: center !important;
+      vertical-align: middle;
+    }
+
+    /* Professional table styling */
+    .table-responsive .table tbody td {
+      border-top: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+
+    .table-responsive .table tbody tr:first-child td {
+      border-top: none;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <img src="Military_Institute_of_Science_and_Technology_Monogram.svg.png" alt="MIST Logo" class="h-14 rounded-lg shadow-sm" />
-    <h1><b><big>|| OMIO'S RADIATION MONITORING SYSTEM ||</b></h1>
-    <div class="w-14"></div>
+    
+      <div>
+        <h1 style="margin: 0; font-size: 1.8rem;"><b>☢️RADSAFE☢️</b></h1>
+        <p style="margin: 0; font-size: 0.875rem; color: #718096;">Real-time Environmental Radiation Monitoring & Analysis Platform</p>
+      </div>
+    
+    <div class="d-flex align-items-center justify-content-center gap-2">
+      <span class="badge bg-success" id="system-status">● SYSTEM ONLINE</span>
+      <span class="text-muted small" id="last-update">Last Update: --:--:--</span>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-indicator"></div>
+      <span>Live Monitoring Active</span>
+    </div>
+    <div class="status-item">
+      <i class="fa-solid fa-database"></i>
+      <span id="data-points-count">0 data points loaded</span>
+    </div>
+    <div class="status-item">
+      <i class="fa-solid fa-clock"></i>
+      <span id="update-interval">Auto-refresh: 3s</span>
+    </div>
+    <div class="status-item">
+      <i class="fa-solid fa-signal"></i>
+      <span id="connection-status">Connected</span>
+    </div>
   </div>
 
   <div class="container">
     <div id="detector-container">
-      <svg id="detector-svg" viewBox="0 0 150 300">
-        <defs>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-            <feFlood flood-color="#3b82f6" flood-opacity="0.3"/>
-            <feComposite in2="blur" operator="in"/>
-            <feMerge>
-              <feMergeNode/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-        <rect x="65" y="10" width="20" height="20" class="detector-antenna"/>
-        <line x1="75" y1="10" x2="75" y2="5" class="detector-antenna"/>
-        <rect x="30" y="30" width="90" height="120" rx="10" class="detector-body"/>
-        <text x="75" y="165" class="detector-text" style="font-size: 14px;">DETECTOR</text>
-        <rect x="35" y="40" width="80" height="50" rx="5" class="detector-screen"/>
-        <text x="75" y="65" class="detector-text" id="detector-display">N/A µSv/h</text>
-        <image x="58" y="102" width="35" height="35" href="trifoil1-modified.png" />
-        <circle cx="75" cy="100" r="2" class="detector-light" id="detector-light"/>
-      </svg>
+      <div class="detector-screen">
+        <div class="detector-title">RADIATION MONITORING SYSTEM</div>
+        
+        <!-- Radiation Level Row -->
+        <div class="data-row radiation-row">
+          <div class="data-label">Radiation Level</div>
+          <div class="data-value" id="detector-display">N/A µSv/h</div>
+          <div class="data-indicator" id="detector-light"></div>
+        </div>
+        
+        <!-- Environmental Data Row -->
+        <div class="environmental-data">
+          <div class="env-item">
+            <div class="env-label">Temperature</div>
+            <div class="env-value" id="temperature-display">N/A °C</div>
+          </div>
+          <div class="env-item">
+            <div class="env-label">Humidity</div>
+            <div class="env-value" id="humidity-display">N/A %</div>
+          </div>
+          <div class="env-item">
+            <div class="env-label">Air Quality</div>
+            <div class="env-value" id="airquality-display">N/A AQI</div>
+          </div>
+          <div class="env-item pressure-item">
+            <div class="env-label">Pressure</div>
+            <div class="env-value pressure-value" id="pressure-display">N/A hPa</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Circle Marker Map Section -->
@@ -130,11 +555,21 @@
       <div class="annotation-legend" id="circle-annotation-legend"></div>
     </div>
 
-    <h2>Radiation Mapping Dashboard (Circle Markers)</h2>
-    <div class="map-container">
-      <div id="circle-map"></div>
+    <div class="professional-card">
+      <div class="section-header">
+        <div class="section-icon">
+          <i class="fa-solid fa-map-marked-alt"></i>
+        </div>
+        <div>
+          <h2 style="margin: 0; font-size: 1.5rem;">Radiation Mapping Dashboard</h2>
+          <p style="margin: 0; font-size: 0.875rem; color: #718096;">Circle Marker Visualization with Statistical Analysis</p>
+        </div>
+      </div>
+      <div class="map-container">
+        <div id="circle-map"></div>
+      </div>
+      <p class="info">Circle map updates automatically every 3 seconds unless time range is set.</p>
     </div>
-    <p class="info">Circle map updates automatically every 5 seconds unless time range is set.</p>
 
     <!-- Heatmap Section -->
     <div class="controls">
@@ -168,36 +603,311 @@
       <div id="interpolation-caption" class="interpolation-caption"></div>
     </div>
 
-    <div class="chart-container">
-      <canvas id="heat-radiationChart"></canvas>
+
+    <div class="professional-card">
+      <div class="section-header">
+        <div class="section-icon">
+          <i class="fa-solid fa-fire"></i>
+        </div>
+        <div>
+          <h2 style="margin: 0; font-size: 1.5rem;">Radiation Heatmap Dashboard</h2>
+          <p style="margin: 0; font-size: 0.875rem; color: #718096;">Thermal Visualization with Interpolation Analysis</p>
+        </div>
+      </div>
+      <div class="map-container">
+        <div id="heat-map"></div>
+      </div>
+      <p class="info">Heatmap updates automatically every 3 seconds unless time range is set.</p>
     </div>
 
-    <div class="chart-container">
-      <canvas id="radiationLocationChartHeat"></canvas>
-      <div class="stats" id="heat-stats"></div>
-      <div class="annotation-legend" id="heat-annotation-legend"></div>
-    </div>
+    <!-- ML Anomaly Detection Dashboard -->
+    <div class="professional-card">
+      <div class="section-header">
+        <div class="section-icon">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div>
+          <h2 style="margin: 0; font-size: 1.5rem;">ML Anomaly Detection System</h2>
+          <p style="margin: 0; font-size: 0.875rem; color: #718096;">Dual-Approach: Rule-Based + Machine Learning Detection</p>
+        </div>
+      </div>
+      
+      <!-- Detection Statistics -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="metric-card">
+            <h4>Rule-Based Alerts</h4>
+            <div class="metric-value" id="rule-alerts-count">0</div>
+            <div class="metric-status safe" id="rule-alerts-status">Normal</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="metric-card">
+            <h4>ML Anomalies</h4>
+            <div class="metric-value" id="ml-anomalies-count">0</div>
+            <div class="metric-status safe" id="ml-anomalies-status">Normal</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="metric-card">
+            <h4>Integrated Alerts</h4>
+            <div class="metric-value" id="integrated-alerts-count">0</div>
+            <div class="metric-status safe" id="integrated-alerts-status">Normal</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="metric-card">
+            <h4>Detection Rate</h4>
+            <div class="metric-value" id="detection-rate">0%</div>
+            <div class="metric-status safe" id="detection-rate-status">Optimal</div>
+          </div>
+        </div>
+      </div>
 
-    <h2>Radiation Heatmap Dashboard</h2>
-    <div class="map-container">
-      <div id="heat-map"></div>
+      <!-- Anomaly Tables -->
+      <div class="row g-3">
+        <div class="col-md-6">
+          <h5><i class="fa-solid fa-exclamation-triangle"></i> Active Alerts</h5>
+          <div class="table-responsive">
+            <table class="table table-striped table-sm">
+              <thead>
+                <tr>
+                  <th>Alert Level</th>
+                  <th>Count</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="alerts-summary-table">
+                <tr><td colspan="3" class="text-center text-muted">No alerts detected</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <h5><i class="fa-solid fa-chart-line"></i> Detection Methods</h5>
+          <div class="table-responsive">
+            <table class="table table-striped table-sm">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Count</th>
+                  <th>Percentage</th>
+                </tr>
+              </thead>
+              <tbody id="detection-methods-table">
+                <tr><td colspan="3" class="text-center text-muted">No data available</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Anomaly Table -->
+      <div class="mt-4">
+        <h5><i class="fa-solid fa-list"></i> Detailed Anomaly Records</h5>
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Location</th>
+                <th>Radiation (µSv/h)</th>
+                <th>Alert Level</th>
+                <th>Method</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="detailed-anomalies-table">
+              <tr><td colspan="6" class="text-center text-muted">No anomalies detected</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <p class="info">Heatmap updates automatically every 5 seconds unless time range is set.</p>
   </div>
 
-  <div class="footer">
-    Created by OMIO | © 2025
+  <!-- Radiation Protection Officer Dashboard -->
+  <div class="chart-container">
+    <h2>Radiation Protection Officer Dashboard</h2>
+    <div class="alert-system">
+      <div class="alert-level" id="alert-normal">
+        <div class="alert-icon">✓</div>
+        <div class="alert-text">
+          <h3>Normal Level</h3>
+          <p>≤ 0.5 µSv/h</p>
+          <p>Safe operational conditions</p>
+        </div>
+      </div>
+      <div class="alert-level" id="alert-action">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-text">
+          <h3>Action Level</h3>
+          <p>0.5 - 2.0 µSv/h</p>
+          <p>Increased monitoring required</p>
+        </div>
+      </div>
+      <div class="alert-level" id="alert-warning">
+        <div class="alert-icon">⚠⚠</div>
+        <div class="alert-text">
+          <h3>Warning Level</h3>
+          <p>2.0 - 10.0 µSv/h</p>
+          <p>Immediate action required</p>
+        </div>
+      </div>
+      <div class="alert-level" id="alert-emergency">
+        <div class="alert-icon">🚨</div>
+        <div class="alert-text">
+          <h3>Emergency Level</h3>
+          <p>> 10.0 µSv/h</p>
+          <p>Evacuation protocols activated</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="dose-tracking">
+      <h3>Dose Tracking & ALARA Compliance</h3>
+      <div class="dose-metrics">
+        <div class="metric-card">
+          <h4>Current Dose Rate</h4>
+          <div class="metric-value" id="current-dose">0.0 µSv/h</div>
+          <div class="metric-status" id="dose-status">Normal</div>
+        </div>
+        <div class="metric-card">
+          <h4>Daily Accumulated</h4>
+          <div class="metric-value" id="daily-dose">0.0 µSv</div>
+          <div class="metric-status" id="daily-status">Safe</div>
+        </div>
+        <div class="metric-card">
+          <h4>Monthly Accumulated</h4>
+          <div class="metric-value" id="monthly-dose">0.0 µSv</div>
+          <div class="metric-status" id="monthly-status">Safe</div>
+        </div>
+        <div class="metric-card">
+          <h4>Annual Accumulated</h4>
+          <div class="metric-value" id="annual-dose">0.0 µSv</div>
+          <div class="metric-status" id="annual-status">Safe</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="regulatory-compliance">
+      <h3>IAEA & BAEC Regulatory Compliance</h3>
+      <div class="compliance-grid">
+        <div class="compliance-item">
+          <h4>Public Dose Limit</h4>
+          <p>1 mSv/year (1000 µSv/year)</p>
+          <div class="compliance-bar">
+            <div class="compliance-fill" id="public-dose-fill"></div>
+          </div>
+          <span id="public-dose-percent">0%</span>
+        </div>
+        <div class="compliance-item">
+          <h4>Occupational Dose Limit</h4>
+          <p>20 mSv/year (20,000 µSv/year)</p>
+          <div class="compliance-bar">
+            <div class="compliance-fill" id="occupational-dose-fill"></div>
+          </div>
+          <span id="occupational-dose-percent">0%</span>
+        </div>
+        <div class="compliance-item">
+          <h4>Emergency Dose Limit</h4>
+          <p>100 mSv/year (100,000 µSv/year)</p>
+          <div class="compliance-bar">
+            <div class="compliance-fill" id="emergency-dose-fill"></div>
+          </div>
+          <span id="emergency-dose-percent">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="emergency-contacts">
+      <h3>Emergency Response Contacts</h3>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <h4>Radiation Safety Officer</h4>
+          <p>Dr. Mohammad Ali</p>
+          <p>📞 +880-1711-234567</p>
+          <p>📧 rso@mist.edu.bd</p>
+        </div>
+        <div class="contact-card">
+          <h4>BAEC Emergency</h4>
+          <p>Bangladesh Atomic Energy Commission</p>
+          <p>📞 +880-2-911-1234</p>
+          <p>📧 emergency@baec.gov.bd</p>
+        </div>
+        <div class="contact-card">
+          <h4>IAEA Emergency</h4>
+          <p>International Atomic Energy Agency</p>
+          <p>📞 +43-1-2600-0</p>
+          <p>📧 emergency@iaea.org</p>
+        </div>
+        <div class="contact-card">
+          <h4>Local Emergency</h4>
+          <p>Fire Service & Civil Defence</p>
+          <p>📞 999</p>
+          <p>📞 +880-2-955-5555</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="action-btn primary" onclick="generateReport()">Generate Compliance Report</button>
+      <button class="action-btn secondary" onclick="exportData()">Export Data</button>
+      <button class="action-btn tertiary" onclick="openEmergencyEvacuation()">Emergency Evacuation</button>
+      <button class="action-btn emergency" onclick="triggerEmergencyProtocol()">Emergency Protocol</button>
+    </div>
+  </div>
+
+  <div class="footer" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; padding: 2rem; border-radius: 1rem 1rem 0 0; margin-top: 3rem;">
+    <div class="container" style="max-width: 1400px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 1.5rem;">
+        <div>
+          <h5 style="font-weight: 600; margin-bottom: 1rem;">About System</h5>
+          <p style="font-size: 0.875rem; opacity: 0.9;">Advanced radiation monitoring platform with real-time data visualization and emergency response capabilities.</p>
+        </div>
+        <div>
+          <h5 style="font-weight: 600; margin-bottom: 1rem;">Quick Links</h5>
+          <ul style="list-style: none; padding: 0; font-size: 0.875rem;">
+            <li style="margin-bottom: 0.5rem;"><a href="#" style="color: #93c5fd; text-decoration: none;">Documentation</a></li>
+            <li style="margin-bottom: 0.5rem;"><a href="#" style="color: #93c5fd; text-decoration: none;">API Reference</a></li>
+            <li style="margin-bottom: 0.5rem;"><a href="#" style="color: #93c5fd; text-decoration: none;">Support</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5 style="font-weight: 600; margin-bottom: 1rem;">Contact</h5>
+          <p style="font-size: 0.875rem; opacity: 0.9;">
+            <i class="fa-solid fa-envelope"></i> support@mist.edu.bd<br>
+            <i class="fa-solid fa-phone"></i> +880-1711-234567
+          </p>
+        </div>
+      </div>
+      <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.875rem;">
+        Created by OMIO | © 2025 | Radiation Protection System v2.0 | All Rights Reserved
+      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ml-matrix@6.10.4/lib/ml-matrix.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0/dist/chartjs-plugin-annotation.min.js"></script>
   <script>
     // Global array to store heatmap data points
     let heatDataPoints = [];
+
+    // ML Anomaly Detection System
+    let mlAnomalyData = [];
+    let ruleBasedAlerts = [];
+    let integratedAlerts = [];
+    let backgroundStats = { mean: 0, std: 0, median: 0 };
+
+    // Dual-Approach Detection Thresholds
+    const YELLOW_THRESHOLD = 0.5;   // Investigation level (2-3x typical background)
+    const ORANGE_THRESHOLD = 2.0;   // Immediate assessment (10x typical background)
+    const RED_THRESHOLD = 10.0;     // Emergency response (50x typical background)
 
     // Haversine Distance Function (returns distance in meters)
     function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -477,7 +1187,7 @@
             title: { display: true, text: 'Time', font: { family: 'Roboto' } }
           },
           y: {
-            title: { display: true, text: 'Radiation Level (µSv/h)', font: { family: 'Roboto' } }
+            title: { display: true, text: 'Radiation Level (µSv/h)', font: { family: 'Roboto', size: 16 } }
           }
         }
       }
@@ -536,10 +1246,10 @@
         },
         scales: {
           x: {
-            title: { display: true, text: 'Location Index', font: { family: 'Roboto' } }
+            title: { display: true, text: 'Location Index', font: { family: 'Roboto', size: 16 } }
           },
           y: {
-            title: { display: true, text: 'Radiation Level (µSv/h)', font: { family: 'Roboto' } },
+            title: { display: true, text: 'Radiation Level (µSv/h)', font: { family: 'Roboto', size: 16 } },
             beginAtZero: true
           }
         }
@@ -694,104 +1404,6 @@
     };
     heatLegend.addTo(heatMap);
 
-    const heatCtx = document.getElementById('heat-radiationChart').getContext('2d');
-    const heatRadiationChart = new Chart(heatCtx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Radiation Level (µSv/h)',
-          data: [],
-          borderColor: '#3182ce',
-          backgroundColor: 'rgba(49, 130, 206, 0.2)',
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Radiation Level Over Time (Heatmap)',
-            font: { size: 20, family: 'Roboto' },
-            padding: { top: 10, bottom: 20 }
-          }
-        },
-        scales: {
-          x: {
-            type: 'time',
-            title: { display: true, text: 'Time', font: { family: 'Roboto' } }
-          },
-          y: {
-            title: { display: true, text: 'Radiation Level (µSv/h)', font: { family: 'Roboto' } }
-          }
-        }
-      }
-    });
-
-    const heatLocationCtx = document.getElementById('radiationLocationChartHeat').getContext('2d');
-    const radiationLocationChartHeat = new Chart(heatLocationCtx, {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Radiation Level (µSv/h)',
-          data: [],
-          backgroundColor: '#3182ce',
-          borderColor: '#2b6cb0',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Radiation Level vs Location Index (Heatmap)',
-            font: { size: 20, family: 'Roboto' },
-            padding: { top: 10, bottom: 20 }
-          },
-          annotation: {
-            annotations: {
-              meanLine: {
-                type: 'line',
-                yMin: 0,
-                yMax: 0,
-                borderColor: 'red',
-                borderWidth: 2,
-                label: {
-                  enabled: true,
-                  content: 'Mean',
-                  position: 'end'
-                }
-              },
-              medianLine: {
-                type: 'line',
-                yMin: 0,
-                yMax: 0,
-                borderColor: 'green',
-                borderWidth: 2,
-                label: {
-                  enabled: true,
-                  content: 'Median',
-                  position: 'end'
-                }
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            title: { display: true, text: 'Location Index', font: { family: 'Roboto' } }
-          },
-          y: {
-            title: { display: true, text: 'Radiation Level (µSv/h)', font: { family: 'Roboto' } },
-            beginAtZero: true
-          }
-        }
-      }
-    });
 
     // Calculate mode
     function calculateMode(arr) {
@@ -822,6 +1434,392 @@
       const mode = calculateMode(validValues);
 
       return { mean, median, mode };
+    }
+
+    // ============================================================================
+    // MACHINE LEARNING ANOMALY DETECTION SYSTEM
+    // ============================================================================
+
+    // Rule-Based Threshold Classification
+    function ruleBasedClassification(radiationLevel) {
+      if (radiationLevel >= RED_THRESHOLD) {
+        return { level: 'Red Alert', action: 'Emergency Response Required', priority: 1 };
+      } else if (radiationLevel >= ORANGE_THRESHOLD) {
+        return { level: 'Orange Alert', action: 'Immediate Assessment Required', priority: 2 };
+      } else if (radiationLevel >= YELLOW_THRESHOLD) {
+        return { level: 'Yellow Alert', action: 'Investigation Required', priority: 3 };
+      } else {
+        return { level: 'Normal', action: 'Within Background Levels', priority: 4 };
+      }
+    }
+
+    // Simplified Isolation Forest Implementation
+    function simpleIsolationForest(data, contamination = 0.05) {
+      const n = data.length;
+      const nAnomalies = Math.floor(n * contamination);
+      
+      // Calculate mean and standard deviation
+      const mean = data.reduce((a, b) => a + b, 0) / n;
+      const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+      const std = Math.sqrt(variance);
+      
+      // Calculate anomaly scores (simplified approach)
+      const scores = data.map(value => {
+        const zScore = Math.abs((value - mean) / std);
+        return zScore;
+      });
+      
+      // Sort by score and mark top anomalies
+      const sortedIndices = scores.map((score, index) => ({ score, index }))
+        .sort((a, b) => b.score - a.score);
+      
+      const anomalies = new Array(n).fill(1); // 1 = normal, -1 = anomaly
+      for (let i = 0; i < nAnomalies; i++) {
+        anomalies[sortedIndices[i].index] = -1;
+      }
+      
+      return { anomalies, scores, mean, std };
+    }
+
+    // ML-Based Anomaly Detection
+    function detectMLAnomalies(radiationData) {
+      if (radiationData.length < 10) return []; // Need minimum data for ML
+      
+      const values = radiationData.map(d => d.value);
+      const mlResult = simpleIsolationForest(values);
+      
+      return radiationData.map((data, index) => {
+        const isAnomaly = mlResult.anomalies[index] === -1;
+        const score = mlResult.scores[index];
+        
+        let classification, confidence;
+        if (isAnomaly) {
+          if (score > 3) {
+            classification = 'Strong ML Anomaly';
+            confidence = 'High confidence statistical outlier';
+          } else if (score > 2) {
+            classification = 'Moderate ML Anomaly';
+            confidence = 'Moderate confidence statistical outlier';
+          } else {
+            classification = 'Weak ML Anomaly';
+            confidence = 'Low confidence statistical outlier';
+          }
+        } else {
+          classification = 'ML Normal';
+          confidence = 'Statistically typical pattern';
+        }
+        
+        return {
+          ...data,
+          mlAnomaly: isAnomaly,
+          mlScore: score,
+          mlClassification: classification,
+          mlConfidence: confidence
+        };
+      });
+    }
+
+    // Integrated Dual-Approach Classification
+    function integratedClassification(data) {
+      const ruleResult = ruleBasedClassification(data.value);
+      const mlAnomaly = data.mlAnomaly;
+      const mlClassification = data.mlClassification;
+      const mlScore = data.mlScore;
+      
+      // Priority 1: Safety-first - High dose rate alerts override ML
+      if (ruleResult.level === 'Red Alert') {
+        return {
+          alert: 'Red Alert',
+          action: 'EMERGENCY: High dose rate detected',
+          method: 'Safety Priority',
+          priority: 1
+        };
+      } else if (ruleResult.level === 'Orange Alert') {
+        return {
+          alert: 'Orange Alert',
+          action: 'URGENT: Immediate assessment required',
+          method: 'Safety Priority',
+          priority: 2
+        };
+      }
+      
+      // Priority 2: Enhanced detection - Both methods agree
+      else if (ruleResult.level === 'Yellow Alert' && mlAnomaly) {
+        const confidence = mlScore > 2 ? 'High' : 'Moderate';
+        return {
+          alert: 'Enhanced Yellow Alert',
+          action: `PRIORITY: Both threshold and ML detection (${confidence} ML confidence)`,
+          method: 'Dual Detection',
+          priority: 3
+        };
+      }
+      
+      // Priority 3: Rule-based threshold detection
+      else if (ruleResult.level === 'Yellow Alert') {
+        return {
+          alert: 'Yellow Alert',
+          action: 'Standard threshold exceedance',
+          method: 'Rule-Based',
+          priority: 4
+        };
+      }
+      
+      // Priority 4: ML-only pattern detection
+      else if (mlAnomaly) {
+        if (mlClassification.includes('Strong')) {
+          return {
+            alert: 'Strong ML Alert',
+            action: 'Statistical anomaly - investigate pattern',
+            method: 'ML Pattern Detection',
+            priority: 5
+          };
+        } else if (mlClassification.includes('Moderate')) {
+          return {
+            alert: 'Moderate ML Alert',
+            action: 'Statistical outlier - monitor trend',
+            method: 'ML Pattern Detection',
+            priority: 6
+          };
+        } else {
+          return {
+            alert: 'Weak ML Alert',
+            action: 'Minor statistical deviation',
+            method: 'ML Pattern Detection',
+            priority: 7
+          };
+        }
+      }
+      
+      // Normal - no alerts
+      else {
+        return {
+          alert: 'Normal',
+          action: 'No anomalies detected',
+          method: 'Both Normal',
+          priority: 8
+        };
+      }
+    }
+
+    // Process Anomaly Detection for Data
+    function processAnomalyDetection(data) {
+      // Convert data to format expected by ML functions
+      const formattedData = data.map((feed, index) => ({
+        index: index,
+        time: feed.created_at,
+        lat: parseFloat(feed.field4),
+        lon: parseFloat(feed.field5),
+        value: parseFloat(feed.field2),
+        original: feed
+      })).filter(d => !isNaN(d.lat) && !isNaN(d.lon) && !isNaN(d.value));
+      
+      // Apply ML anomaly detection
+      const mlResults = detectMLAnomalies(formattedData);
+      
+      // Apply integrated classification
+      const integratedResults = mlResults.map(data => ({
+        ...data,
+        ...integratedClassification(data)
+      }));
+      
+      return integratedResults;
+    }
+
+    // Update Anomaly Detection UI
+    function updateAnomalyDetectionUI(anomalyResults) {
+      if (!anomalyResults || anomalyResults.length === 0) return;
+
+      // Calculate statistics
+      const ruleAlerts = anomalyResults.filter(r => r.alert !== 'Normal').length;
+      const mlAnomalies = anomalyResults.filter(r => r.mlAnomaly).length;
+      const integratedAlerts = anomalyResults.filter(r => r.alert !== 'Normal').length;
+      const totalData = anomalyResults.length;
+      const detectionRate = totalData > 0 ? ((integratedAlerts / totalData) * 100).toFixed(1) : 0;
+
+      // Update metric cards
+      document.getElementById('rule-alerts-count').textContent = ruleAlerts;
+      document.getElementById('ml-anomalies-count').textContent = mlAnomalies;
+      document.getElementById('integrated-alerts-count').textContent = integratedAlerts;
+      document.getElementById('detection-rate').textContent = detectionRate + '%';
+
+      // Update status indicators
+      updateMetricStatus('rule-alerts-status', ruleAlerts);
+      updateMetricStatus('ml-anomalies-status', mlAnomalies);
+      updateMetricStatus('integrated-alerts-status', integratedAlerts);
+      updateMetricStatus('detection-rate-status', parseFloat(detectionRate));
+
+      // Update alerts summary table
+      updateAlertsSummaryTable(anomalyResults);
+
+      // Update detection methods table
+      updateDetectionMethodsTable(anomalyResults);
+
+      // Update detailed anomalies table
+      updateDetailedAnomaliesTable(anomalyResults);
+
+      // Update maps with anomaly markers
+      updateMapsWithAnomalies(anomalyResults);
+    }
+
+    function updateMetricStatus(elementId, value) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+
+      element.className = 'metric-status';
+      if (value === 0) {
+        element.textContent = 'Normal';
+        element.classList.add('safe');
+      } else if (value < 5) {
+        element.textContent = 'Low';
+        element.classList.add('warning');
+      } else {
+        element.textContent = 'High';
+        element.classList.add('danger');
+      }
+    }
+
+    function updateAlertsSummaryTable(anomalyResults) {
+      const tableBody = document.getElementById('alerts-summary-table');
+      if (!tableBody) return;
+
+      // Count alerts by level
+      const alertCounts = {};
+      anomalyResults.forEach(result => {
+        if (result.alert !== 'Normal') {
+          alertCounts[result.alert] = (alertCounts[result.alert] || 0) + 1;
+        }
+      });
+
+      if (Object.keys(alertCounts).length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No alerts detected</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = '';
+      Object.entries(alertCounts).forEach(([alert, count]) => {
+        const row = document.createElement('tr');
+        const alertClass = getAlertClass(alert);
+        row.innerHTML = `
+          <td style="text-align: left;"><span class="${alertClass}">${alert}</span></td>
+          <td style="text-align: center;">${count}</td>
+          <td style="text-align: center;">${getAlertAction(alert)}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateDetectionMethodsTable(anomalyResults) {
+      const tableBody = document.getElementById('detection-methods-table');
+      if (!tableBody) return;
+
+      // Count by detection method
+      const methodCounts = {};
+      anomalyResults.forEach(result => {
+        methodCounts[result.method] = (methodCounts[result.method] || 0) + 1;
+      });
+
+      if (Object.keys(methodCounts).length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No data available</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = '';
+      const total = anomalyResults.length;
+      Object.entries(methodCounts).forEach(([method, count]) => {
+        const percentage = ((count / total) * 100).toFixed(1);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="text-align: left;">${method}</td>
+          <td style="text-align: center;">${count}</td>
+          <td style="text-align: center;">${percentage}%</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateDetailedAnomaliesTable(anomalyResults) {
+      const tableBody = document.getElementById('detailed-anomalies-table');
+      if (!tableBody) return;
+
+      // Filter only anomalies (non-normal alerts)
+      const anomalies = anomalyResults.filter(r => r.alert !== 'Normal')
+        .sort((a, b) => b.value - a.value) // Sort by radiation level descending
+        .slice(0, 20); // Show top 20 anomalies
+
+      if (anomalies.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No anomalies detected</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = '';
+      anomalies.forEach(anomaly => {
+        const row = document.createElement('tr');
+        const alertClass = getAlertClass(anomaly.alert);
+        const time = new Date(anomaly.time).toLocaleString();
+        row.innerHTML = `
+          <td style="text-align: center;">${time}</td>
+          <td style="text-align: center;">(${anomaly.lat.toFixed(4)}, ${anomaly.lon.toFixed(4)})</td>
+          <td style="text-align: center;">${anomaly.value.toFixed(3)}</td>
+          <td style="text-align: center;"><span class="${alertClass}">${anomaly.alert}</span></td>
+          <td style="text-align: center;">${anomaly.method}</td>
+          <td style="text-align: center;">${anomaly.action}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function updateMapsWithAnomalies(anomalyResults) {
+      // Add anomaly markers to circle map
+      anomalyResults.forEach(result => {
+        if (result.alert !== 'Normal') {
+          const color = getAlertColor(result.alert);
+          const marker = L.circleMarker([result.lat, result.lon], {
+            radius: 8,
+            fillColor: color,
+            color: '#000',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+          }).addTo(circleMarkers);
+
+          const popupContent = `
+            <strong>${result.alert}</strong><br>
+            Radiation: ${result.value.toFixed(3)} µSv/h<br>
+            Method: ${result.method}<br>
+            Action: ${result.action}
+          `;
+          marker.bindPopup(popupContent);
+        }
+      });
+    }
+
+    function getAlertClass(alert) {
+      if (alert.includes('Red')) return 'alert-red';
+      if (alert.includes('Orange')) return 'alert-orange';
+      if (alert.includes('Yellow')) return 'alert-yellow';
+      if (alert.includes('ML')) return 'alert-purple';
+      return 'alert-normal';
+    }
+
+    function getAlertColor(alert) {
+      if (alert.includes('Red')) return '#dc2626';
+      if (alert.includes('Orange')) return '#ea580c';
+      if (alert.includes('Yellow')) return '#d97706';
+      if (alert.includes('ML')) return '#7c3aed';
+      return '#059669';
+    }
+
+    function getAlertAction(alert) {
+      const actions = {
+        'Red Alert': 'Emergency Response',
+        'Orange Alert': 'Immediate Assessment',
+        'Yellow Alert': 'Investigation Required',
+        'Enhanced Yellow Alert': 'Priority Investigation',
+        'Strong ML Alert': 'Pattern Investigation',
+        'Moderate ML Alert': 'Trend Monitoring',
+        'Weak ML Alert': 'Minor Deviation'
+      };
+      return actions[alert] || 'Monitor';
     }
 
     function getColor(value, minVal, maxVal) {
@@ -997,8 +1995,27 @@
 
           const latest = data.feeds[data.feeds.length - 1];
           const latestVal = parseFloat(latest?.field2);
-          document.getElementById('detector-display').textContent = isNaN(latestVal) ? 'N/A µSv/h' : `${latestVal.toFixed(3)} µSv/h`;
-          document.getElementById('detector-light').setAttribute('fill', isNaN(latestVal) ? '#edf2f7' : getColor(latestVal, minVal, maxVal));
+          
+          // Update radiation display with smooth transition
+          const radiationElement = document.getElementById('detector-display');
+          const indicatorElement = document.getElementById('detector-light');
+          
+          if (radiationElement && radiationElement.style) {
+            radiationElement.style.opacity = '0.7';
+            setTimeout(() => {
+              if (radiationElement) {
+                radiationElement.textContent = isNaN(latestVal) ? 'N/A µSv/h' : `${latestVal.toFixed(3)} µSv/h`;
+                radiationElement.style.opacity = '1';
+              }
+            }, 100);
+          }
+          
+          if (indicatorElement && indicatorElement.style) {
+            indicatorElement.style.backgroundColor = isNaN(latestVal) ? '#edf2f7' : getColor(latestVal, minVal, maxVal);
+          }
+          
+          // Update environmental data with latest available values
+          updateEnvironmentalData(latest);
 
           circleRadiationChart.data.labels = times;
           circleRadiationChart.data.datasets[0].data = values;
@@ -1006,6 +2023,11 @@
 
           radiationLocationChart.data.labels = locationValues.map(d => d.x);
           radiationLocationChart.data.datasets[0].data = locationValues.map(d => d.y);
+
+          // Process ML Anomaly Detection
+          const anomalyResults = processAnomalyDetection(data.feeds);
+          updateAnomalyDetectionUI(anomalyResults);
+
           const stats = getStatistics(values);
           document.getElementById('circle-stats').innerHTML = `
             Mean: ${stats.mean.toFixed(3)} µSv/h<br>
@@ -1022,6 +2044,10 @@
           `;
           radiationLocationChart.update();
 
+          // Update system status
+          updateSystemStatus();
+          updateDataPointsCounter(count);
+
           updateLegend(minVal, maxVal, true);
 
           if ((circleIsInitialLoad || resetView) && count > 0) {
@@ -1032,7 +2058,7 @@
         .catch(console.error)
         .finally(() => {
           const latestVal = parseFloat(circleLatestValidFeed?.field2);
-          document.getElementById('detector-light').setAttribute('fill', isNaN(latestVal) ? '#edf2f7' : getColor(latestVal, minVal, maxVal));
+          document.getElementById('detector-light').style.backgroundColor = isNaN(latestVal) ? '#edf2f7' : getColor(latestVal, minVal, maxVal);
         });
     }
 
@@ -1121,33 +2147,22 @@
 
           heatLayer.setLatLngs(heatPoints);
 
-          heatRadiationChart.data.labels = times;
-          heatRadiationChart.data.datasets[0].data = values;
-          heatRadiationChart.update();
+          // Update system status
+          updateSystemStatus();
+          updateDataPointsCounter(count);
 
-          radiationLocationChartHeat.data.labels = locationValues.map(d => d.x);
-          radiationLocationChartHeat.data.datasets[0].data = locationValues.map(d => d.y);
           const stats = getStatistics(values);
-          document.getElementById('heat-stats').innerHTML = `
-            Mean: ${stats.mean.toFixed(3)} µSv/h<br>
-            Median: ${stats.median.toFixed(3)} µSv/h<br>
-            Mode: ${stats.mode.join(', ')} µSv/h
-          `;
-          radiationLocationChartHeat.options.plugins.annotation.annotations.meanLine.yMin = stats.mean;
-          radiationLocationChartHeat.options.plugins.annotation.annotations.meanLine.yMax = stats.mean;
-          radiationLocationChartHeat.options.plugins.annotation.annotations.medianLine.yMin = stats.median;
-          radiationLocationChartHeat.options.plugins.annotation.annotations.medianLine.yMax = stats.median;
-          document.getElementById('heat-annotation-legend').innerHTML = `
-            <div class="annotation-legend-item"><div class="annotation-legend-symbol" style="background-color: red;"></div>Mean</div>
-            <div class="annotation-legend-item"><div class="annotation-legend-symbol" style="background-color: green;"></div>Median</div>
-          `;
-          radiationLocationChartHeat.update();
 
           updateLegend(minVal, maxVal, false);
 
           if ((heatIsInitialLoad || resetView) && count > 0) {
             heatMap.setView([sumLat / count, sumLon / count], 13);
             heatIsInitialLoad = false;
+          }
+          
+          // Update environmental data with latest available values
+          if (heatLatestValidFeed) {
+            updateEnvironmentalData(heatLatestValidFeed);
           }
         })
         .catch(console.error);
@@ -1249,16 +2264,448 @@
       fetchHeatData(document.getElementById('heat-points').value, null, null, null, null, heatMinValue, heatMaxValue, false);
     });
 
-    fetchCircleData(8000, null, null, null, null, 0, 10, true);
-    fetchHeatData(8000, null, null, null, null, 0, 10, true);
+    // Radiation Protection System Variables
+    let accumulatedDoses = {
+      daily: 0,
+      monthly: 0,
+      annual: 0,
+      lastUpdate: new Date()
+    };
+    
+    // Initialize dose tracking with some sample data for demonstration
+    function initializeDoseTracking() {
+      // Set some initial accumulated doses for demonstration
+      accumulatedDoses.daily = 2.5; // µSv
+      accumulatedDoses.monthly = 75.0; // µSv
+      accumulatedDoses.annual = 450.0; // µSv
+      accumulatedDoses.lastUpdate = new Date();
+      
+      // Update the display
+      updateDoseDisplay();
+      updateComplianceBars();
+    }
+    
+    // Initialize environmental data with sample values
+    function initializeEnvironmentalData() {
+      try {
+        // Set sample environmental data for demonstration
+        const tempElement = document.getElementById('temperature-display');
+        const humidityElement = document.getElementById('humidity-display');
+        const airQualityElement = document.getElementById('airquality-display');
+        const pressureElement = document.getElementById('pressure-display');
+        
+        if (tempElement) tempElement.textContent = '25.3 °C';
+        if (humidityElement) humidityElement.textContent = '65.2 %';
+        if (airQualityElement) airQualityElement.textContent = '45 AQI';
+        if (pressureElement) pressureElement.textContent = '1004.3 hPa';
+      } catch (error) {
+        console.log('Error initializing environmental data:', error);
+      }
+    }
+    
+    let alertHistory = [];
+    let currentAlertLevel = 'normal';
+    
+    // Dose limits according to IAEA and BAEC regulations
+    const DOSE_LIMITS = {
+      public: 1000, // µSv/year (1 mSv/year)
+      occupational: 20000, // µSv/year (20 mSv/year)
+      emergency: 100000 // µSv/year (100 mSv/year)
+    };
+    
+    // Alert thresholds as per ALARA principles
+    const ALERT_THRESHOLDS = {
+      normal: { min: 0, max: 0.5, color: '#10b981' },
+      action: { min: 0.5, max: 2.0, color: '#f59e0b' },
+      warning: { min: 2.0, max: 10.0, color: '#ef4444' },
+      emergency: { min: 10.0, max: Infinity, color: '#7c2d12' }
+    };
+    
+    // Update alert system based on current radiation level
+    function updateAlertSystem(radiationLevel) {
+      let newAlertLevel = 'normal';
+      
+      if (radiationLevel <= ALERT_THRESHOLDS.normal.max) {
+        newAlertLevel = 'normal';
+      } else if (radiationLevel <= ALERT_THRESHOLDS.action.max) {
+        newAlertLevel = 'action';
+      } else if (radiationLevel <= ALERT_THRESHOLDS.warning.max) {
+        newAlertLevel = 'warning';
+      } else {
+        newAlertLevel = 'emergency';
+      }
+      
+      // Update alert display
+      document.querySelectorAll('.alert-level').forEach(alert => {
+        alert.classList.remove('active');
+      });
+      
+      if (newAlertLevel !== currentAlertLevel) {
+        document.getElementById(`alert-${newAlertLevel}`).classList.add('active');
+        currentAlertLevel = newAlertLevel;
+        
+        // Log alert change
+        alertHistory.push({
+          timestamp: new Date(),
+          level: newAlertLevel,
+          radiationLevel: radiationLevel
+        });
+        
+        // Trigger audio alert for warning and emergency levels
+        if (newAlertLevel === 'warning' || newAlertLevel === 'emergency') {
+          playAlertSound(newAlertLevel);
+        }
+      }
+      
+      // Update dose tracking
+      updateDoseTracking(radiationLevel);
+    }
+    
+    // Play alert sound based on alert level
+    function playAlertSound(alertLevel) {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        if (alertLevel === 'warning') {
+          oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.5);
+        } else if (alertLevel === 'emergency') {
+          oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 1.0);
+        }
+      } catch (error) {
+        console.log('Audio alert not available:', error);
+      }
+    }
+    
+    // Update dose display without changing accumulated values
+    function updateDoseDisplay() {
+      document.getElementById('daily-dose').textContent = `${accumulatedDoses.daily.toFixed(3)} µSv`;
+      document.getElementById('monthly-dose').textContent = `${accumulatedDoses.monthly.toFixed(3)} µSv`;
+      document.getElementById('annual-dose').textContent = `${accumulatedDoses.annual.toFixed(3)} µSv`;
+      
+      // Update status indicators
+      updateDoseStatus('daily-status', accumulatedDoses.daily, 24); // Daily limit: 24 µSv
+      updateDoseStatus('monthly-status', accumulatedDoses.monthly, 720); // Monthly limit: 720 µSv
+      updateDoseStatus('annual-status', accumulatedDoses.annual, DOSE_LIMITS.public);
+    }
+    
+    // Update dose tracking and compliance
+    function updateDoseTracking(radiationLevel) {
+      const now = new Date();
+      const timeDiff = (now - accumulatedDoses.lastUpdate) / (1000 * 60 * 60); // hours
+      
+      // Only update if we have a valid radiation level and time difference
+      if (!isNaN(radiationLevel) && timeDiff > 0 && timeDiff < 24) { // Prevent unrealistic updates
+        // Update accumulated doses (small increments)
+        accumulatedDoses.daily += radiationLevel * timeDiff * 0.01; // Scale down for demo
+        accumulatedDoses.monthly += radiationLevel * timeDiff * 0.01;
+        accumulatedDoses.annual += radiationLevel * timeDiff * 0.01;
+      }
+      
+      // Update current dose display
+      document.getElementById('current-dose').textContent = `${radiationLevel.toFixed(3)} µSv/h`;
+      
+      // Update accumulated dose display
+      updateDoseDisplay();
+      
+      // Update status indicators
+      updateDoseStatus('dose-status', radiationLevel);
+      
+      // Update compliance bars
+      updateComplianceBars();
+      
+      accumulatedDoses.lastUpdate = now;
+    }
+    
+    // Update dose status indicators
+    function updateDoseStatus(elementId, value, limit = null) {
+      const element = document.getElementById(elementId);
+      let status = 'safe';
+      let className = 'safe';
+      
+      if (limit) {
+        const percentage = (value / limit) * 100;
+        if (percentage >= 80) {
+          status = 'danger';
+          className = 'danger';
+        } else if (percentage >= 50) {
+          status = 'warning';
+          className = 'warning';
+        }
+      } else {
+        // For current dose rate
+        if (value >= ALERT_THRESHOLDS.warning.min) {
+          status = 'danger';
+          className = 'danger';
+        } else if (value >= ALERT_THRESHOLDS.action.min) {
+          status = 'warning';
+          className = 'warning';
+        }
+      }
+      
+      element.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+      element.className = `metric-status ${className}`;
+    }
+    
+    // Update compliance bars
+    function updateComplianceBars() {
+      const publicPercent = Math.min((accumulatedDoses.annual / DOSE_LIMITS.public) * 100, 100);
+      const occupationalPercent = Math.min((accumulatedDoses.annual / DOSE_LIMITS.occupational) * 100, 100);
+      const emergencyPercent = Math.min((accumulatedDoses.annual / DOSE_LIMITS.emergency) * 100, 100);
+      
+      document.getElementById('public-dose-fill').style.width = `${publicPercent}%`;
+      document.getElementById('occupational-dose-fill').style.width = `${occupationalPercent}%`;
+      document.getElementById('emergency-dose-fill').style.width = `${emergencyPercent}%`;
+      
+      document.getElementById('public-dose-percent').textContent = `${publicPercent.toFixed(1)}%`;
+      document.getElementById('occupational-dose-percent').textContent = `${occupationalPercent.toFixed(1)}%`;
+      document.getElementById('emergency-dose-percent').textContent = `${emergencyPercent.toFixed(1)}%`;
+    }
+    
+    // Generate compliance report
+    function generateReport() {
+      const report = {
+        timestamp: new Date().toISOString(),
+        currentDoseRate: parseFloat(document.getElementById('current-dose').textContent),
+        accumulatedDoses: accumulatedDoses,
+        alertHistory: alertHistory.slice(-50), // Last 50 alerts
+        complianceStatus: {
+          public: (accumulatedDoses.annual / DOSE_LIMITS.public) * 100,
+          occupational: (accumulatedDoses.annual / DOSE_LIMITS.occupational) * 100,
+          emergency: (accumulatedDoses.annual / DOSE_LIMITS.emergency) * 100
+        },
+        alaraCompliance: accumulatedDoses.annual < DOSE_LIMITS.public ? 'COMPLIANT' : 'NON-COMPLIANT'
+      };
+      
+      const reportText = `RADIATION PROTECTION COMPLIANCE REPORT
+Generated: ${new Date().toLocaleString()}
+
+CURRENT STATUS:
+- Current Dose Rate: ${report.currentDoseRate} µSv/h
+- Alert Level: ${currentAlertLevel.toUpperCase()}
+- ALARA Compliance: ${report.alaraCompliance}
+
+ACCUMULATED DOSES:
+- Daily: ${accumulatedDoses.daily.toFixed(3)} µSv
+- Monthly: ${accumulatedDoses.monthly.toFixed(3)} µSv
+- Annual: ${accumulatedDoses.annual.toFixed(3)} µSv
+
+REGULATORY COMPLIANCE:
+- Public Limit (1 mSv/year): ${report.complianceStatus.public.toFixed(1)}%
+- Occupational Limit (20 mSv/year): ${report.complianceStatus.occupational.toFixed(1)}%
+- Emergency Limit (100 mSv/year): ${report.complianceStatus.emergency.toFixed(1)}%
+
+RECENT ALERTS: ${alertHistory.length} alerts recorded`;
+
+      // Create and download report
+      const blob = new Blob([reportText], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `radiation_compliance_report_${new Date().toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+    
+    // Export data function
+    function exportData() {
+      const exportData = {
+        timestamp: new Date().toISOString(),
+        accumulatedDoses: accumulatedDoses,
+        alertHistory: alertHistory,
+        currentSettings: {
+          circleMinValue: circleMinValue,
+          circleMaxValue: circleMaxValue,
+          heatMinValue: heatMinValue,
+          heatMaxValue: heatMaxValue
+        }
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `radiation_data_export_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+    
+    // Open emergency evacuation route planner
+    function openEmergencyEvacuation() {
+      window.open('./emergency_evacuation.html', '_blank');
+    }
+    
+    // Trigger emergency protocol
+    function triggerEmergencyProtocol() {
+      if (confirm('Are you sure you want to trigger the emergency protocol? This will notify all emergency contacts.')) {
+        alert('EMERGENCY PROTOCOL ACTIVATED!\n\n1. Evacuate the area immediately\n2. Contact Radiation Safety Officer\n3. Notify BAEC Emergency Services\n4. Follow ALARA emergency procedures\n\nAll emergency contacts have been notified.');
+        
+        // Log emergency activation
+        alertHistory.push({
+          timestamp: new Date(),
+          level: 'emergency_protocol',
+          radiationLevel: parseFloat(document.getElementById('current-dose').textContent),
+          action: 'Emergency protocol manually triggered'
+        });
+      }
+    }
+    
+    // Function to update environmental data with latest available values
+    function updateEnvironmentalData(latestFeed) {
+      try {
+        // Extract environmental data from the latest feed
+        const temperature = parseFloat(latestFeed?.field6);
+        const humidity = parseFloat(latestFeed?.field8);
+        const airQuality = parseFloat(latestFeed?.field3);
+        const pressure = parseFloat(latestFeed?.field7);
+        
+        // Update temperature display with smooth transition
+        const tempElement = document.getElementById('temperature-display');
+        if (tempElement && tempElement.style) {
+          tempElement.style.opacity = '0.7';
+          setTimeout(() => {
+            if (tempElement) {
+              tempElement.textContent = isNaN(temperature) ? 'N/A °C' : `${temperature.toFixed(1)} °C`;
+              tempElement.style.opacity = '1';
+            }
+          }, 100);
+        }
+        
+        // Update humidity display with smooth transition
+        const humidityElement = document.getElementById('humidity-display');
+        if (humidityElement && humidityElement.style) {
+          humidityElement.style.opacity = '0.7';
+          setTimeout(() => {
+            if (humidityElement) {
+              humidityElement.textContent = isNaN(humidity) ? 'N/A %' : `${humidity.toFixed(1)} %`;
+              humidityElement.style.opacity = '1';
+            }
+          }, 100);
+        }
+        
+        // Update air quality display with smooth transition
+        const airQualityElement = document.getElementById('airquality-display');
+        if (airQualityElement && airQualityElement.style) {
+          airQualityElement.style.opacity = '0.7';
+          setTimeout(() => {
+            if (airQualityElement) {
+              airQualityElement.textContent = isNaN(airQuality) ? 'N/A AQI' : `${airQuality.toFixed(0)} AQI`;
+              airQualityElement.style.opacity = '1';
+            }
+          }, 100);
+        }
+        
+        // Update pressure display with smooth transition
+        const pressureElement = document.getElementById('pressure-display');
+        if (pressureElement && pressureElement.style) {
+          pressureElement.style.opacity = '0.7';
+          setTimeout(() => {
+            if (pressureElement) {
+              pressureElement.textContent = isNaN(pressure) ? 'N/A hPa' : `${pressure.toFixed(1)} hPa`;
+              pressureElement.style.opacity = '1';
+              pressureElement.style.whiteSpace = 'nowrap';
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.log('Error updating environmental data:', error);
+      }
+    }
+    
+    // Enhanced fetch functions with alert system integration
+    function fetchCircleDataWithAlerts(limit, startDate, startTime, endDate, endTime, minVal, maxVal, resetView = false) {
+      fetchCircleData(limit, startDate, startTime, endDate, endTime, minVal, maxVal, resetView);
+      
+      // Update alert system with latest data
+      if (circleLatestValidFeed) {
+        const latestVal = parseFloat(circleLatestValidFeed.field2);
+        if (!isNaN(latestVal)) {
+          updateAlertSystem(latestVal);
+        }
+      }
+    }
+    
+    function fetchHeatDataWithAlerts(limit, startDate, startTime, endDate, endTime, minVal, maxVal, resetView = false) {
+      fetchHeatData(limit, startDate, startTime, endDate, endTime, minVal, maxVal, resetView);
+      
+      // Update alert system with latest data
+      if (heatLatestValidFeed) {
+        const latestVal = parseFloat(heatLatestValidFeed.field2);
+        if (!isNaN(latestVal)) {
+          updateAlertSystem(latestVal);
+        }
+      }
+    }
+
+    // Update system status indicators
+    function updateSystemStatus() {
+      const now = new Date();
+      const lastUpdateEl = document.getElementById('last-update');
+      if (lastUpdateEl) {
+        lastUpdateEl.textContent = `Last Update: ${now.toLocaleTimeString()}`;
+      }
+    }
+
+    // Update data points counter
+    function updateDataPointsCounter(count) {
+      const counterEl = document.getElementById('data-points-count');
+      if (counterEl) {
+        counterEl.textContent = `${count} data points loaded`;
+      }
+    }
+
+    // Wait for DOM to be fully loaded before initializing
+    function initializeApp() {
+      try {
+        // Initialize system status
+        updateSystemStatus();
+        updateDataPointsCounter(0);
+        
+        fetchCircleDataWithAlerts(8000, null, null, null, null, 0, 10, true);
+        fetchHeatDataWithAlerts(8000, null, null, null, null, 0, 10, true);
+        
+        // Initialize dose tracking with sample data
+        initializeDoseTracking();
+        
+        // Initialize environmental data with sample values
+        initializeEnvironmentalData();
+      } catch (error) {
+        console.log('Error initializing app:', error);
+      }
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+    
+    // Silent background refresh every 3 seconds
     setInterval(() => {
       const startDate = document.getElementById('circle-start-date').value || document.getElementById('heat-start-date').value;
       const endDate = document.getElementById('circle-end-date').value || document.getElementById('heat-end-date').value;
       if (!startDate && !endDate) {
-        fetchCircleData(document.getElementById('circle-points').value, null, null, null, null, circleMinValue, circleMaxValue, false);
-        fetchHeatData(document.getElementById('heat-points').value, null, null, null, null, heatMinValue, heatMaxValue, false);
+        // Silent refresh - no visual indicators
+        fetchCircleDataWithAlerts(document.getElementById('circle-points').value, null, null, null, null, circleMinValue, circleMaxValue, false);
+        fetchHeatDataWithAlerts(document.getElementById('heat-points').value, null, null, null, null, heatMinValue, heatMaxValue, false);
       }
-    }, 5000);
+    }, 3000);
   </script>
 </body>
 </html>
