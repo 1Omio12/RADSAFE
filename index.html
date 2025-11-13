@@ -1098,19 +1098,19 @@
           <div class="legend" id="circle-legend-content">
             <div class="legend-item">
               <i style="background:#3b82f6"></i>
-              <span>${circleMinValue.toFixed(1)} to 1.0 µSv/h</span>
+              <span><strong>Normal Level</strong><br>≤ 0.5 µSv/h<br>Safe operational conditions</span>
             </div>
             <div class="legend-item">
               <i style="background:#22c55e"></i>
-              <span>1.0 to 2.0 µSv/h</span>
+              <span><strong>⚠ Action Level</strong><br>0.5 - 2.0 µSv/h<br>Increased monitoring required</span>
             </div>
             <div class="legend-item">
               <i style="background:#facc15"></i>
-              <span>2.0 to 3.0 µSv/h</span>
+              <span><strong>⚠⚠ Warning Level</strong><br>2.0 - 10.0 µSv/h<br>Immediate action required</span>
             </div>
             <div class="legend-item">
               <i style="background:#ef4444"></i>
-              <span>3.0 to ${circleMaxValue.toFixed(1)} µSv/h</span>
+              <span><strong>🚨 Emergency Level</strong><br>> 10.0 µSv/h<br>Evacuation protocols activated</span>
             </div>
             <div class="legend-item">
               <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" />
@@ -1352,17 +1352,24 @@
     heatLegend.onAdd = function () {
       const div = L.DomUtil.create('div', 'legend-container');
       div.innerHTML = `
-        <div class="legend-content legend-open">
+        <button class="legend-toggle">Toggle Legend</button>
+        <div class="legend-content">
           <div class="legend" id="heat-legend-content">
-            <div class="gradient-container">
-              <div class="gradient-bar" style="background: linear-gradient(to bottom, #ef4444, #facc15, #22c55e, #3b82f6);"></div>
-              <div class="gradient-labels">
-                <span class="gradient-label" style="top: 0%;">${heatMaxValue.toFixed(1)} µSv/h</span>
-                <span class="gradient-label" style="top: 25%;">3.0 µSv/h</span>
-                <span class="gradient-label" style="top: 50%;">2.0 µSv/h</span>
-                <span class="gradient-label" style="top: 75%;">1.0 µSv/h</span>
-                <span class="gradient-label" style="top: 100%;">${heatMinValue.toFixed(1)} µSv/h</span>
-              </div>
+            <div class="legend-item">
+              <i style="background:#3b82f6"></i>
+              <span><strong>Normal Level</strong><br>≤ 0.5 µSv/h<br>Safe operational conditions</span>
+            </div>
+            <div class="legend-item">
+              <i style="background:#22c55e"></i>
+              <span><strong>⚠ Action Level</strong><br>0.5 - 2.0 µSv/h<br>Increased monitoring required</span>
+            </div>
+            <div class="legend-item">
+              <i style="background:#facc15"></i>
+              <span><strong>⚠⚠ Warning Level</strong><br>2.0 - 10.0 µSv/h<br>Immediate action required</span>
+            </div>
+            <div class="legend-item">
+              <i style="background:#ef4444"></i>
+              <span><strong>🚨 Emergency Level</strong><br>> 10.0 µSv/h<br>Evacuation protocols activated</span>
             </div>
             <div class="legend-item">
               <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" />
@@ -1373,7 +1380,14 @@
         </div>
       `;
 
+      const toggleButton = div.querySelector('.legend-toggle');
       const showLatestButton = div.querySelector('#heat-show-latest-location');
+
+      L.DomEvent.on(toggleButton, 'click touchstart', function (e) {
+        e.preventDefault();
+        const content = div.querySelector('.legend-content');
+        content.classList.toggle('legend-open');
+      });
 
       L.DomEvent.on(showLatestButton, 'click touchstart', function (e) {
         e.preventDefault();
@@ -1832,23 +1846,22 @@
     function updateLegend(minVal, maxVal, isCircle) {
       const legendContent = document.getElementById(`${isCircle ? 'circle' : 'heat'}-legend-content`);
       if (legendContent) {
-        if (isCircle) {
-          legendContent.innerHTML = `
+        legendContent.innerHTML = `
             <div class="legend-item">
               <i style="background:#3b82f6"></i>
-              <span>${minVal.toFixed(1)} to 1.0 µSv/h</span>
+              <span><strong>Normal Level</strong><br>≤ 0.5 µSv/h<br>Safe operational conditions</span>
             </div>
             <div class="legend-item">
               <i style="background:#22c55e"></i>
-              <span>1.0 to 2.0 µSv/h</span>
+              <span><strong>⚠ Action Level</strong><br>0.5 - 2.0 µSv/h<br>Increased monitoring required</span>
             </div>
             <div class="legend-item">
               <i style="background:#facc15"></i>
-              <span>2.0 to 3.0 µSv/h</span>
+              <span><strong>⚠⚠ Warning Level</strong><br>2.0 - 10.0 µSv/h<br>Immediate action required</span>
             </div>
             <div class="legend-item">
               <i style="background:#ef4444"></i>
-              <span>3.0 to ${maxVal.toFixed(1)} µSv/h</span>
+              <span><strong>🚨 Emergency Level</strong><br>> 10.0 µSv/h<br>Evacuation protocols activated</span>
             </div>
             <div class="legend-item">
               <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" />
@@ -1856,25 +1869,6 @@
             </div>
             <button id="${isCircle ? 'circle' : 'heat'}-show-latest-location">Show Latest Location</button>
           `;
-        } else {
-          legendContent.innerHTML = `
-            <div class="gradient-container">
-              <div class="gradient-bar" style="background: linear-gradient(to bottom, #ef4444, #facc15, #22c55e, #3b82f6);"></div>
-              <div class="gradient-labels">
-                <span class="gradient-label" style="top: 0%;">${maxVal.toFixed(1)} µSv/h</span>
-                <span class="gradient-label" style="top: 25%;">3.0 µSv/h</span>
-                <span class="gradient-label" style="top: 50%;">2.0 µSv/h</span>
-                <span class="gradient-label" style="top: 75%;">1.0 µSv/h</span>
-                <span class="gradient-label" style="top: 100%;">${minVal.toFixed(1)} µSv/h</span>
-              </div>
-            </div>
-            <div class="legend-item">
-              <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" />
-              <span>Latest Location</span>
-            </div>
-            <button id="heat-show-latest-location">Show Latest Location</button>
-          `;
-        }
 
         const showLatestButton = legendContent.querySelector(`#${isCircle ? 'circle' : 'heat'}-show-latest-location`);
         L.DomEvent.on(showLatestButton, 'click touchstart', function (e) {
@@ -2709,3 +2703,4 @@ RECENT ALERTS: ${alertHistory.length} alerts recorded`;
   </script>
 </body>
 </html>
+
