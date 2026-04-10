@@ -139,6 +139,16 @@
         </div>
     </div>
 
+    <!-- Detector Switching Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex-col items-center justify-center transition-all duration-300">
+        <div class="relative flex items-center justify-center w-24 h-24">
+            <div class="absolute inset-0 border-4 border-t-blue-500 border-r-blue-500 border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+            <div class="absolute inset-2 border-4 border-t-transparent border-r-transparent border-b-purple-500 border-l-purple-500 rounded-full animate-spin" style="animation-direction: reverse;"></div>
+            <i class="fa-solid fa-radiation text-2xl text-white animate-pulse"></i>
+        </div>
+        <p class="mt-6 text-white font-semibold tracking-widest animate-pulse" id="loading-message">CONNECTING TO DETECTOR...</p>
+    </div>
+
     <div id="app-content" class="flex h-screen opacity-0">
         
         <!-- Mobile Sidebar Overlay -->
@@ -206,6 +216,19 @@
                     <h1 class="text-xl font-semibold text-gray-800 dark:text-white hidden md:block">Environmental Radiation Monitor</h1>
 
                     <div class="flex items-center space-x-4">
+                        <!-- Detector Selector -->
+                        <div class="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg p-1 gap-1">
+                            <button id="det-001-btn"
+                                onclick="switchDetector('001')"
+                                class="det-btn px-3 py-1.5 text-xs font-bold rounded-md bg-blue-600 text-white shadow transition-all">
+                                Detector 001
+                            </button>
+                            <button id="det-002-btn"
+                                onclick="switchDetector('002')"
+                                class="det-btn px-3 py-1.5 text-xs font-bold rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-all">
+                                Detector 002
+                            </button>
+                        </div>
                         <button id="refresh-btn" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-slate-800 transition-colors">
                             <span class="material-icons">refresh</span>
                         </button>
@@ -557,6 +580,26 @@
         let heatLatestValidFeed = null;
         let heatDataPoints = [];
         let accumulatedDoses = { daily: 0, monthly: 0, annual: 0, lastUpdate: new Date() };
+        let refreshInterval;
+
+        // --- DETECTOR CONFIG ---
+        const DETECTORS = {
+          '001': { 
+              label: 'Detector 001', 
+              channelId: '2967420',  
+              apiKey: '', 
+              hasEnvData: true, 
+              fields: { radiation: 'field2', lat: 'field4', lon: 'field5' } 
+          },
+          '002': { 
+              label: 'Detector 002', 
+              channelId: '3299919',  
+              apiKey: 'U0EIGURDN2HOIWTI', 
+              hasEnvData: false, 
+              fields: { radiation: 'field2', lat: 'field3', lon: 'field4' } 
+          }
+        };
+        let activeDetector = '001';
 
         // --- UI Logic ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -679,6 +722,7 @@
 
         const heatMap = L.map('heat-map', { renderer: L.canvas() }).setView([23.685, 90.3563], 7);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(heatMap);
+        const heatMarkers = L.layerGroup().addTo(heatMap);
         
         let heatLayer = L.heatLayer([], {
             radius: 50, blur: 40, minOpacity: 0.4, maxZoom: 17,
@@ -745,12 +789,13 @@
                     e.preventDefault();
                     const latestFeed = isCircleMap ? circleLatestValidFeed : heatLatestValidFeed;
                     const map = isCircleMap ? circleMap : heatMap;
-                    const layer = isCircleMap ? circleMarkers : heatMap;
+                    const layer = isCircleMap ? circleMarkers : heatMarkers;
 
                     if (latestFeed) {
-                        const lat = parseFloat(latestFeed.field4);
-                        const lon = parseFloat(latestFeed.field5);
-                        const val = parseFloat(latestFeed.field2);
+                        const { fields } = DETECTORS[activeDetector];
+                        const lat = parseFloat(latestFeed[fields.lat]);
+                        const lon = parseFloat(latestFeed[fields.lon]);
+                        const val = parseFloat(latestFeed[fields.radiation]);
                         
                         const customIcon = L.icon({
                             iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -758,13 +803,13 @@
                         });
 
                         L.marker([lat, lon], { icon: customIcon })
-                          .addTo(isCircleMap ? circleMarkers : heatMap)
+                          .addTo(layer)
                           .bindPopup(`<div class="font-sans"><strong>Latest Reading</strong><br>Rad: ${val} µSv/h<br>Time: ${new Date(latestFeed.created_at).toLocaleTimeString()}</div>`)
                           .openPopup();
 
                         map.panTo([lat, lon], { animate: true, duration: 1 });
                     } else {
-                        alert("No recent data available yet.");
+                        alert("No GPS location data available for this detector. Radiation values are still being received.");
                     }
                 });
 
@@ -887,18 +932,31 @@
         }
 
         function updateEnvironmentalData(feed) {
-             if(!feed) return;
-             document.getElementById('temperature-display').textContent = parseFloat(feed.field6).toFixed(1) + ' °C';
-             document.getElementById('humidity-display').textContent = parseFloat(feed.field8).toFixed(1) + ' %';
-             document.getElementById('airquality-display').textContent = parseFloat(feed.field3).toFixed(0) + ' AQI';
-             document.getElementById('pressure-display').textContent = parseFloat(feed.field7).toFixed(1) + ' hPa';
+             if (!DETECTORS[activeDetector].hasEnvData || !feed) {
+                 document.getElementById('temperature-display').textContent = '-- °C';
+                 document.getElementById('humidity-display').textContent = '-- %';
+                 document.getElementById('airquality-display').textContent = '-- AQI';
+                 document.getElementById('pressure-display').textContent = '-- hPa';
+                 return;
+             }
+             
+             const temp = parseFloat(feed.field6);
+             const hum = parseFloat(feed.field8);
+             const aqi = parseFloat(feed.field3);
+             const press = parseFloat(feed.field7);
+
+             document.getElementById('temperature-display').textContent = !isNaN(temp) ? temp.toFixed(1) + ' °C' : '-- °C';
+             document.getElementById('humidity-display').textContent = !isNaN(hum) ? hum.toFixed(1) + ' %' : '-- %';
+             document.getElementById('airquality-display').textContent = !isNaN(aqi) ? aqi.toFixed(0) + ' AQI' : '-- AQI';
+             document.getElementById('pressure-display').textContent = !isNaN(press) ? press.toFixed(1) + ' hPa' : '-- hPa';
         }
 
-        // NEW: Function to Calculate Historical Dose from fetched data
+        // Function to Calculate Historical Dose from fetched data
         function calculateHistoricalDose(feeds) {
             let daily = 0;
             let monthly = 0;
             let annual = 0;
+            const { fields } = DETECTORS[activeDetector];
             
             // Sort feeds by time just in case
             feeds.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -926,7 +984,7 @@
                 // This prevents adding huge dose if device was off for 2 days
                 if (diffHours > 0.25) continue; 
 
-                const val = parseFloat(currFeed.field2);
+                const val = parseFloat(currFeed[fields.radiation]);
                 if (isNaN(val)) continue;
 
                 // Dose for this interval (µSv)
@@ -941,132 +999,155 @@
             return { daily, monthly, annual, lastUpdate: new Date() };
         }
 
-        function fetchCircleData(limit = 8000) {
-            const minVal = parseFloat(document.getElementById('circle-min-value').value);
-            const maxVal = parseFloat(document.getElementById('circle-max-value').value);
-            const channelId = '2967420';
-            const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?results=${limit}`;
-
-            fetch(url).then(res => res.json()).then(data => {
-                circleMarkers.clearLayers();
-                const times = [], values = [], locValues = [];
-                let sumLat = 0, sumLon = 0, count = 0;
-                
-                // Reset local reference, but update global later
-                let tempLatestFeed = null;
-                
-                let lastTime = null;
-                const GAP_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
-
-                data.feeds.forEach((feed, index) => {
-                    const lat = parseFloat(feed.field4);
-                    const lon = parseFloat(feed.field5);
-                    const val = parseFloat(feed.field2);
-                    const currentTime = new Date(feed.created_at).getTime();
-                    
-                    if (!isNaN(lat) && !isNaN(lon) && !isNaN(val) && val >= minVal && val <= maxVal) {
-                        
-                        if (lastTime && (currentTime - lastTime > GAP_THRESHOLD_MS)) {
-                            times.push(new Date(lastTime + 1000).toISOString()); 
-                            values.push(null); 
-                        }
-
-                        times.push(feed.created_at);
-                        values.push(val);
-                        locValues.push({x: index, y: val});
-                        lastTime = currentTime;
-                        
-                        L.circleMarker([lat, lon], {
-                            radius: 6, fillColor: getColor(val, minVal, maxVal),
-                            color: '#000', weight: 1, fillOpacity: 0.8
-                        }).addTo(circleMarkers).bindPopup(`Rad: ${val} µSv/h<br>Time: ${feed.created_at}`);
-
-                        sumLat += lat; sumLon += lon; count++;
-                        tempLatestFeed = feed;
-                    }
-                });
-
-                // Update GLOBAL variable for Legend
-                circleLatestValidFeed = tempLatestFeed;
-
-                // NEW: Calculate historical doses from the 1125 points
-                const historical = calculateHistoricalDose(data.feeds);
-                accumulatedDoses.daily = historical.daily;
-                accumulatedDoses.monthly = historical.monthly;
-                accumulatedDoses.annual = historical.annual;
-                accumulatedDoses.lastUpdate = new Date(); // Reset ticker base
-
-                if (circleLatestValidFeed) {
-                    const latestVal = parseFloat(circleLatestValidFeed.field2);
-                    document.getElementById('detector-display').textContent = latestVal.toFixed(3) + ' µSv/h';
-                    document.getElementById('detector-light').style.backgroundColor = getColor(latestVal, 0, 10);
-                    updateEnvironmentalData(circleLatestValidFeed);
-                    updateAlertSystem(latestVal); // This will now use the calculated historical values
-                }
-
-                circleRadiationChart.data.labels = times;
-                circleRadiationChart.data.datasets[0].data = values;
-                circleRadiationChart.update();
-
-                radiationLocationChart.data.labels = locValues.map(d => d.x);
-                radiationLocationChart.data.datasets[0].data = locValues.map(d => d.y);
-                
-                const validVals = values.filter(v => v !== null); 
-                const mean = validVals.reduce((a,b)=>a+b, 0)/validVals.length || 0;
-                const sorted = [...validVals].sort((a,b)=>a-b);
-                const median = sorted[Math.floor(sorted.length/2)] || 0;
-                
-                document.getElementById('circle-stats').innerHTML = `Mean: ${mean.toFixed(3)} | Median: ${median.toFixed(3)}`;
-                radiationLocationChart.options.plugins.annotation.annotations.meanLine.yMin = mean;
-                radiationLocationChart.options.plugins.annotation.annotations.meanLine.yMax = mean;
-                radiationLocationChart.options.plugins.annotation.annotations.medianLine.yMin = median;
-                radiationLocationChart.options.plugins.annotation.annotations.medianLine.yMax = median;
-                radiationLocationChart.update();
-
-                const anomalyResults = processAnomalyDetection(data.feeds);
-                updateAnomalyDetectionUI(anomalyResults);
-
-                document.getElementById('last-update').textContent = 'Last Update: ' + new Date().toLocaleTimeString();
-                document.getElementById('data-count').textContent = `${data.feeds.length} Data Points Loaded`;
-            });
+        async function fetchAllData(limit = 8000) {
+            const { channelId, apiKey } = DETECTORS[activeDetector];
+            const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?${apiKey ? 'api_key='+apiKey+'&' : ''}results=${limit}`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                processCircleData(data);
+                processHeatData(data);
+            } catch (err) {
+                console.error("Error fetching data:", err);
+            }
         }
 
-        function fetchHeatData(limit = 8000) {
-            const channelId = '2967420';
-            const url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?results=${limit}`;
+        function processCircleData(data) {
+            circleMarkers.clearLayers();
+            const { fields } = DETECTORS[activeDetector];
+            
+            const minValElement = document.getElementById('circle-min-value');
+            const maxValElement = document.getElementById('circle-max-value');
+            
+            const minVal = minValElement ? parseFloat(minValElement.value) : 0;
+            const maxVal = maxValElement ? parseFloat(maxValElement.value) : 10;
+            
+            const times = [], values = [], locValues = [];
+            let sumLat = 0, sumLon = 0, count = 0;
+            
+            let tempLatestFeed = null;
+            let tempLatestFeedWithGPS = null; // separate GPS tracker
+            
+            let lastTime = null;
+            const GAP_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
-            fetch(url).then(res => res.json()).then(data => {
-                heatDataPoints = [];
-                const heatPoints = [];
-                let tempLatestHeat = null;
+            data.feeds.forEach((feed, index) => {
+                const lat = parseFloat(feed[fields.lat]);
+                const lon = parseFloat(feed[fields.lon]);
+                const val = parseFloat(feed[fields.radiation]);
+                const currentTime = new Date(feed.created_at).getTime();
+
+                // Update latest feed for radiation display (only needs val)
+                if (!isNaN(val)) {
+                    tempLatestFeed = feed;
+                }
                 
-                data.feeds.forEach(feed => {
-                    const lat = parseFloat(feed.field4);
-                    const lon = parseFloat(feed.field5);
-                    const val = parseFloat(feed.field2);
+                if (!isNaN(lat) && !isNaN(lon) && !isNaN(val) && val >= minVal && val <= maxVal) {
                     
-                    if (!isNaN(lat) && !isNaN(lon) && !isNaN(val)) {
-                        heatDataPoints.push({lat, lon, val, ...feed});
-                        const intensity = Math.min(Math.max(val / 10, 0), 1);
-                        heatPoints.push([lat, lon, intensity]);
-                        tempLatestHeat = feed;
+                    if (lastTime && (currentTime - lastTime > GAP_THRESHOLD_MS)) {
+                        times.push(new Date(lastTime + 1000).toISOString()); 
+                        values.push(null); 
                     }
-                });
-                
-                // Update GLOBAL variable for Legend
-                heatLatestValidFeed = tempLatestHeat;
-                heatLayer.setLatLngs(heatPoints);
+
+                    times.push(feed.created_at);
+                    values.push(val);
+                    locValues.push({x: index, y: val});
+                    lastTime = currentTime;
+                    
+                    L.circleMarker([lat, lon], {
+                        radius: 6, fillColor: getColor(val, minVal, maxVal),
+                        color: '#000', weight: 1, fillOpacity: 0.8
+                    }).addTo(circleMarkers).bindPopup(`Rad: ${val} µSv/h<br>Time: ${feed.created_at}`);
+
+                    sumLat += lat; sumLon += lon; count++;
+                    tempLatestFeedWithGPS = feed;
+                }
             });
+
+            // Use GPS feed for legend "Locate Latest"
+            circleLatestValidFeed = tempLatestFeedWithGPS;
+
+            // Calculate historical doses from the points
+            const historical = calculateHistoricalDose(data.feeds);
+            accumulatedDoses.daily = historical.daily;
+            accumulatedDoses.monthly = historical.monthly;
+            accumulatedDoses.annual = historical.annual;
+            accumulatedDoses.lastUpdate = new Date(); // Reset ticker base
+
+            // Use radiation-only feed for dashboard display
+            const displayFeed = tempLatestFeed;
+            if (displayFeed) {
+                const latestVal = parseFloat(displayFeed[fields.radiation]);
+                document.getElementById('detector-display').textContent = latestVal.toFixed(3) + ' µSv/h';
+                document.getElementById('detector-light').style.backgroundColor = getColor(latestVal, 0, 10);
+                updateEnvironmentalData(displayFeed);
+                updateAlertSystem(latestVal);
+            }
+
+            circleRadiationChart.data.labels = times;
+            circleRadiationChart.data.datasets[0].data = values;
+            circleRadiationChart.update();
+
+            radiationLocationChart.data.labels = locValues.map(d => d.x);
+            radiationLocationChart.data.datasets[0].data = locValues.map(d => d.y);
+            
+            const validVals = values.filter(v => v !== null); 
+            const mean = validVals.reduce((a,b)=>a+b, 0)/validVals.length || 0;
+            const sorted = [...validVals].sort((a,b)=>a-b);
+            const median = sorted[Math.floor(sorted.length/2)] || 0;
+            
+            document.getElementById('circle-stats').innerHTML = `Mean: ${mean.toFixed(3)} | Median: ${median.toFixed(3)}`;
+            radiationLocationChart.options.plugins.annotation.annotations.meanLine.yMin = mean;
+            radiationLocationChart.options.plugins.annotation.annotations.meanLine.yMax = mean;
+            radiationLocationChart.options.plugins.annotation.annotations.medianLine.yMin = median;
+            radiationLocationChart.options.plugins.annotation.annotations.medianLine.yMax = median;
+            radiationLocationChart.update();
+
+            const anomalyResults = processAnomalyDetection(data.feeds);
+            updateAnomalyDetectionUI(anomalyResults);
+
+            document.getElementById('last-update').textContent = 'Last Update: ' + new Date().toLocaleTimeString();
+            document.getElementById('data-count').textContent = `${data.feeds.length} Data Points Loaded`;
+        }
+
+        function processHeatData(data) {
+            heatDataPoints = [];
+            const heatPoints = [];
+            let tempLatestHeat = null;        // for legend GPS marker
+            let tempLatestHeatFeed = null;    // for any non-GPS use
+            const { fields } = DETECTORS[activeDetector];
+            
+            data.feeds.forEach(feed => {
+                const lat = parseFloat(feed[fields.lat]);
+                const lon = parseFloat(feed[fields.lon]);
+                const val = parseFloat(feed[fields.radiation]);
+
+                if (!isNaN(val)) {
+                    tempLatestHeatFeed = feed; // always track latest val
+                }
+                
+                if (!isNaN(lat) && !isNaN(lon) && !isNaN(val)) {
+                    heatDataPoints.push({lat, lon, val, ...feed});
+                    const intensity = Math.min(Math.max(val / 10, 0), 1);
+                    heatPoints.push([lat, lon, intensity]);
+                    tempLatestHeat = feed; // only track when GPS valid
+                }
+            });
+            
+            heatLatestValidFeed = tempLatestHeat; // GPS-only for Locate Latest
+            heatLayer.setLatLngs(heatPoints);
         }
 
         function processAnomalyDetection(feeds) {
             const results = [];
-            const values = feeds.map(f => parseFloat(f.field2)).filter(v => !isNaN(v));
+            const { fields } = DETECTORS[activeDetector];
+            const values = feeds.map(f => parseFloat(f[fields.radiation])).filter(v => !isNaN(v));
             const mean = values.reduce((a,b)=>a+b,0)/values.length;
             const std = Math.sqrt(values.map(x => Math.pow(x - mean, 2)).reduce((a, b) => a + b) / values.length);
 
             feeds.forEach((feed) => {
-                const val = parseFloat(feed.field2);
+                const val = parseFloat(feed[fields.radiation]);
                 if(isNaN(val)) return;
                 
                 let alert = 'Normal';
@@ -1080,7 +1161,7 @@
 
                 results.push({ 
                     time: feed.created_at, val, alert, method, 
-                    lat: parseFloat(feed.field4), lon: parseFloat(feed.field5) 
+                    lat: parseFloat(feed[fields.lat]), lon: parseFloat(feed[fields.lon]) 
                 });
             });
             return results;
@@ -1109,17 +1190,10 @@
         }
 
         function updateAlertSystem(radLevel) {
-            const now = new Date();
-            const hours = (now - accumulatedDoses.lastUpdate) / 36e5;
-            if(hours > 0 && hours < 24) {
-                const dose = radLevel * hours;
-                accumulatedDoses.daily += dose;
-                accumulatedDoses.monthly += dose;
-                accumulatedDoses.annual += dose;
-            }
-            accumulatedDoses.lastUpdate = now;
+            // REMOVED the hours/dose time-accumulation block entirely.
+            // calculateHistoricalDose() already calculates and sets accumulatedDoses correctly.
+            // Just update the UI displays:
 
-            // --- RPO DASHBOARD UPDATES ---
             document.getElementById('current-dose-display').textContent = radLevel.toFixed(3) + ' µSv/h';
             document.getElementById('daily-dose-display').textContent = accumulatedDoses.daily.toFixed(3) + ' µSv';
             document.getElementById('monthly-dose-display').textContent = accumulatedDoses.monthly.toFixed(3) + ' µSv';
@@ -1152,12 +1226,74 @@
         function generateReport() { alert("Report generation started..."); }
         function exportData() { alert("Exporting CSV..."); }
 
+        // Updated function to display overlay and wait for data fetching
+        async function switchDetector(id) {
+            if (activeDetector === id) return; // Prevent unnecessary reload
+
+            activeDetector = id;
+            
+            // Reset accumulated doses immediately on switch
+            accumulatedDoses = { daily: 0, monthly: 0, annual: 0, lastUpdate: new Date() };
+
+            // Cancel old interval
+            clearInterval(refreshInterval);
+            
+            // Clear environmental data early to show "--" while loading or if unsupported
+            document.getElementById('temperature-display').textContent = '-- °C';
+            document.getElementById('humidity-display').textContent = '-- %';
+            document.getElementById('airquality-display').textContent = '-- AQI';
+            document.getElementById('pressure-display').textContent = '-- hPa';
+            
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingMsg = document.getElementById('loading-message');
+            loadingMsg.textContent = `CONNECTING TO DETECTOR ${id}...`;
+            loadingOverlay.classList.remove('hidden');
+            loadingOverlay.classList.add('flex');
+
+            // Update button styles
+            document.querySelectorAll('.det-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                btn.classList.add('text-gray-500', 'dark:text-gray-400');
+            });
+            const active = document.getElementById(`det-${id}-btn`);
+            active.classList.add('bg-blue-600', 'text-white', 'shadow');
+            active.classList.remove('text-gray-500', 'dark:text-gray-400');
+
+            // Clear existing map layers and charts
+            circleMarkers.clearLayers();
+            heatMarkers.clearLayers();
+            heatLayer.setLatLngs([]);
+            circleRadiationChart.data.labels = [];
+            circleRadiationChart.data.datasets[0].data = [];
+            circleRadiationChart.update();
+            radiationLocationChart.data.labels = [];
+            radiationLocationChart.data.datasets[0].data = [];
+            radiationLocationChart.update();
+
+            // Re-fetch with new detector and wait for all fetches to complete
+            const limit = document.getElementById('circle-points') ? document.getElementById('circle-points').value : 8000;
+            
+            try {
+                await fetchAllData(limit);
+
+                // Restart interval for new detector
+                refreshInterval = setInterval(() => {
+                    fetchAllData(8000);
+                }, 30000);
+            } catch (error) {
+                console.error("Failed to fully load the detector data", error);
+            } finally {
+                // Hide the loader once finished
+                loadingOverlay.classList.add('hidden');
+                loadingOverlay.classList.remove('flex');
+            }
+        }
+
         function initApp() {
-            fetchCircleData(8000);
-            fetchHeatData(8000);
-            setInterval(() => {
-                fetchCircleData(8000);
-                fetchHeatData(8000);
+            fetchAllData(8000);
+            refreshInterval = setInterval(() => {
+                fetchAllData(8000);
             }, 30000);
         }
 
@@ -1170,13 +1306,12 @@
         });
         
         document.getElementById('refresh-btn').addEventListener('click', () => {
-             fetchCircleData(8000);
-             fetchHeatData(8000);
+             fetchAllData(8000);
         });
         
         window.updateCircleMap = function() {
-             const val = document.getElementById('circle-points').value;
-             fetchCircleData(val);
+             const val = document.getElementById('circle-points') ? document.getElementById('circle-points').value : 8000;
+             fetchAllData(val);
         };
 
     </script>
